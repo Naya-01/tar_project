@@ -41,8 +41,17 @@ int main(int argc, char **argv) {
 
 
     int fd2 = open(argv[1] , O_RDONLY);
-    int ret0 = exists(fd2, "lib_tar.h");
+    int ret0 = exists(fd2, "dossier/");
     printf("exists returned %d\n", ret0);
+
+    int fd3 = open(argv[1] , O_RDONLY);
+    int ret1 = is_dir(fd3, "dossier/ok.txt");
+    printf("DIR returned %d\n", ret1);
+
+    int fd4 = open(argv[1] , O_RDONLY);
+    int ret2 = is_file(fd4, "dossier/");
+    printf("file returned %d\n", ret2);
+
 
     return 0;
 }
