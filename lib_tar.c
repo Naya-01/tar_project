@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
-#define MAX_BYTES_BLOCK 512
+#define MAX_BLOCK 512
 
 /**
  * Checks whether the archive is valid.
@@ -20,15 +20,17 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
-    uint8_t buffer[MAX_BYTES_BLOCK];
+    uint8_t buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
     int nb_headers = 0;
 
-    while (read(tar_fd, header, MAX_BYTES_BLOCK) != -1) {
+    while (read(tar_fd, header, MAX_BLOCK) != -1) {
 
         if (header->name[0] == '\0') { 
             break;
         }
+
+        //printf("header name :::: %s \n", header->name);
 
         if (strncmp(header->magic, TMAGIC, TMAGLEN) != 0) {
             return -1;
@@ -40,7 +42,7 @@ int check_archive(int tar_fd) {
 
         int chksum = 0;
         char *bytes = (char *)header;
-        for (int i = 0; i < MAX_BYTES_BLOCK; i++) {
+        for (int i = 0; i < MAX_BLOCK; i++) {
             if (i >= 148 && i < 156) {
                 chksum += ' '; 
             } else {
@@ -53,8 +55,8 @@ int check_archive(int tar_fd) {
         }
 
         int file_size = TAR_INT(header->size);
-        int file_blocks = (file_size + MAX_BYTES_BLOCK - 1) / MAX_BYTES_BLOCK;
-        lseek(tar_fd, file_blocks * MAX_BYTES_BLOCK, SEEK_CUR);
+        int file_blocks = (file_size + MAX_BLOCK - 1) / MAX_BLOCK;
+        lseek(tar_fd, file_blocks * MAX_BLOCK, SEEK_CUR);
 
         nb_headers++;
     }
@@ -73,6 +75,28 @@ int check_archive(int tar_fd) {
  *         any other value otherwise.
  */
 int exists(int tar_fd, char *path) {
+    uint8_t buffer[MAX_BLOCK];
+    tar_header_t *header = (tar_header_t*) buffer;
+    
+    while (read(tar_fd, header, MAX_BLOCK) != -1) {
+
+        if (header->name[0] == '\0') {
+            break;
+        }
+
+        // printf("header name :::: %s \n", header->name);
+        // printf("path name :::: %s \n", path);
+        if (strcmp(header->name, path) == 0) {
+            return 1;
+        }
+
+        int file_size = TAR_INT(header->size);
+        int file_blocks = (file_size + MAX_BLOCK - 1) / MAX_BLOCK;
+        lseek(tar_fd, file_blocks * MAX_BLOCK, SEEK_CUR);
+
+    }
+
+
     return 0;
 }
 
