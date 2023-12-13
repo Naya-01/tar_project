@@ -1,4 +1,7 @@
 #include "lib_tar.h"
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
 
 /**
  * Checks whether the archive is valid.
@@ -16,7 +19,38 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
-    return 0;
+    tar_header_t header;
+    int nb_headers = 0;
+
+    while (read(tar_fd, &header, sizeof(header)) != -1) {
+
+        if (strncmp(header.magic, TMAGIC, strlen(TMAGIC)) != 0) {
+            return -1;
+        }
+
+        if (strncmp(header.version, TVERSION, strlen(TVERSION)) != 0) {
+            return -2;
+        }
+
+        unsigned int chksum = 0;
+        char *bytes = (char *)&header;
+
+        for (int i = 0; i < 512; i++) {
+            if (i >= 148 && i < 156) {
+                chksum += ' ';
+            } else {
+                chksum += bytes[i];
+            }
+        }
+
+        if (chksum != atoi(header.chksum)) {
+            return -3;
+        }
+
+        nb_headers++;
+    }
+    
+    return nb_headers;
 }
 
 /**
