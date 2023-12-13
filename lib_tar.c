@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#define MAX_BYTES_BLOCK 512
 
 /**
  * Checks whether the archive is valid.
@@ -19,37 +20,46 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
-    tar_header_t header;
+    uint8_t buffer[MAX_BYTES_BLOCK];
+    tar_header_t *header = (tar_header_t*) buffer;
     int nb_headers = 0;
 
-    while (read(tar_fd, &header, sizeof(header)) != -1) {
+    while (read(tar_fd, header, MAX_BYTES_BLOCK) != -1) {
 
-        if (strncmp(header.magic, TMAGIC, strlen(TMAGIC)) != 0) {
+        if (header->name[0] == '\0') { 
+            break;
+        }
+
+        if (strncmp(header->magic, TMAGIC, TMAGLEN) != 0) {
             return -1;
         }
 
-        if (strncmp(header.version, TVERSION, strlen(TVERSION)) != 0) {
+        if (strncmp(header->version, TVERSION, TVERSLEN) != 0) {
             return -2;
         }
 
-        unsigned int chksum = 0;
-        char *bytes = (char *)&header;
-
-        for (int i = 0; i < 512; i++) {
+        int chksum = 0;
+        char *bytes = (char *)header;
+        for (int i = 0; i < MAX_BYTES_BLOCK; i++) {
             if (i >= 148 && i < 156) {
-                chksum += ' ';
+                chksum += ' '; 
             } else {
                 chksum += bytes[i];
             }
         }
 
-        if (chksum != atoi(header.chksum)) {
-            return -3;
+        if (chksum != TAR_INT(header->chksum)) {
+            return -3;  
         }
+
+        int file_size = TAR_INT(header->size);
+        int file_blocks = (file_size + MAX_BYTES_BLOCK - 1) / MAX_BYTES_BLOCK;
+        lseek(tar_fd, file_blocks * MAX_BYTES_BLOCK, SEEK_CUR);
 
         nb_headers++;
     }
-    
+
+
     return nb_headers;
 }
 
