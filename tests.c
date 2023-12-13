@@ -52,6 +52,10 @@ int main(int argc, char **argv) {
     int ret2 = is_file(fd4, "dossier/");
     printf("file returned %d\n", ret2);
 
+    int fd5 = open(argv[1] , O_RDONLY);
+    int ret3 = is_symlink(fd5, "lib_tar.h");
+    printf("is_symlink returned %d\n", ret3);
+
 
     return 0;
 }
