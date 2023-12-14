@@ -40,21 +40,27 @@ int main(int argc, char **argv) {
     printf("check_archive returned %d\n", ret);
 
 
-    int fd2 = open(argv[1] , O_RDONLY);
-    int ret0 = exists(fd2, "dossier/");
+    int ret0 = exists(fd, "dossier/ok.txt");
     printf("exists returned %d\n", ret0);
 
-    int fd3 = open(argv[1] , O_RDONLY);
-    int ret1 = is_dir(fd3, "dossier/ok.txt");
+    int ret1 = is_dir(fd, "dossier/");
     printf("DIR returned %d\n", ret1);
 
-    int fd4 = open(argv[1] , O_RDONLY);
-    int ret2 = is_file(fd4, "dossier/");
+    int ret2 = is_file(fd, "dossier/");
     printf("file returned %d\n", ret2);
 
-    int fd5 = open(argv[1] , O_RDONLY);
-    int ret3 = is_symlink(fd5, "lib_tar.h");
+    int ret3 = is_symlink(fd, "lib_tar.h");
     printf("is_symlink returned %d\n", ret3);
+
+
+    char *entries[100];
+    for (int i = 0; i < 100; i++) {
+        entries[i] = malloc(256);
+    }
+
+    size_t no_entries = 0;
+    int ret4 = list(fd, "dossier/", entries, &no_entries);
+    printf("list returned %d\n", ret4);
 
 
     return 0;

@@ -20,6 +20,7 @@
  *         -3 if the archive contains a header with an invalid checksum value
  */
 int check_archive(int tar_fd) {
+    lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
     int nb_headers = 0;
@@ -75,6 +76,7 @@ int check_archive(int tar_fd) {
  *         any other value otherwise.
  */
 int exists(int tar_fd, char *path) {
+    lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
     
@@ -109,6 +111,7 @@ int exists(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_dir(int tar_fd, char *path) {
+    lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
     
@@ -143,6 +146,7 @@ int is_dir(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_file(int tar_fd, char *path) {
+    lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
     
@@ -173,6 +177,7 @@ int is_file(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int is_symlink(int tar_fd, char *path) {
+    lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
     
@@ -218,7 +223,33 @@ int is_symlink(int tar_fd, char *path) {
  *         any other value otherwise.
  */
 int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
-    return 0;
+    lseek(tar_fd, 0, SEEK_SET);
+    char buffer[MAX_BLOCK];
+    tar_header_t *header = (tar_header_t*) buffer;
+    size_t entries_count = 0;
+    size_t path_len = strlen(path);
+
+    while (read(tar_fd, header, MAX_BLOCK) != -1) {
+
+        if (header->name[0] == '\0') {
+            break;
+        }
+
+
+        if (strncmp(header->name, path, path_len) == 0 && strncmp(header->name, path, path_len+1) != 0) {
+            strncpy(entries[entries_count], header->name, MAX_BLOCK);
+            //printf("ent : %s \n", entries[entries_count]);
+            entries_count++;
+        }
+
+        int file_size = TAR_INT(header->size);
+        int file_blocks = (file_size + MAX_BLOCK - 1) / MAX_BLOCK;
+        lseek(tar_fd, file_blocks * MAX_BLOCK, SEEK_CUR);
+
+    }
+
+    *no_entries = entries_count;
+    return entries_count;
 }
 
 /**
