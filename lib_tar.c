@@ -187,7 +187,7 @@ int is_symlink(int tar_fd, char *path) {
             break;
         }
 
-        if (strcmp(header->name, path) == 0 && header->typeflag == LNKTYPE) {
+        if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE) {
             return 1;
         }
 

@@ -53,9 +53,9 @@ int main(int argc, char **argv) {
     printf("is_symlink returned %d\n", ret3);
 
 
-    char *entries[100];
-    for (int i = 0; i < 100; i++) {
-        entries[i] = malloc(256);
+    char *entries[10];
+    for (int i = 0; i < 10; i++) {
+        entries[i] = malloc(64);
     }
 
     size_t no_entries = 0;
