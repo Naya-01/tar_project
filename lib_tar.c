@@ -236,7 +236,7 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
         }
 
 
-        if (strncmp(header->name, path, path_len) == 0 && strncmp(header->name, path, path_len+1) != 0) {
+        if (strncmp(header->name, path, path_len) == 0 && strlen(header->name) != path_len) {
             strncpy(entries[entries_count], header->name, MAX_BLOCK);
             //printf("ent : %s \n", entries[entries_count]);
             entries_count++;
