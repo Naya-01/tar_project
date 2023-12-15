@@ -239,7 +239,6 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
         if (strncmp(header->name, path, path_len) == 0 && header->typeflag == SYMTYPE) {
             entries_count = list(tar_fd, header->linkname, entries, no_entries);
             break;
-            
         }
 
         if (strncmp(header->name, path, path_len) == 0 && strlen(header->name) != path_len) {
@@ -277,5 +276,34 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
  *
  */
 ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) {
-    return 0;
+        
+    // int err;
+    if(exists(tar_fd,path)!= 1) return -1;  
+
+    // Lecture 
+    lseek(tar_fd, 0, SEEK_SET);
+    char buffer[MAX_BLOCK];
+    tar_header_t *header = (tar_header_t*) buffer;
+    
+    while (read(tar_fd, header, MAX_BLOCK) != -1) {
+        
+        // Condition d'arrêt
+        if (header->name[0] == '\0') {
+            break;
+        }
+        
+        printf("header name :::: %s \n", header->name);
+        printf("flag type :::: %c \n\n", header->typeflag);
+        
+        // If SYMLINK then check if the other nickname is a file
+        if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE) {
+            printf("linkname : %s\n", header->linkname);
+        }
+
+        int file_size = TAR_INT(header->size);
+        int file_blocks = (file_size + MAX_BLOCK - 1) / MAX_BLOCK;
+        lseek(tar_fd, file_blocks * MAX_BLOCK, SEEK_CUR);
+    }
+
+    return 1;
 }
