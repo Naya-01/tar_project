@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     int ret2 = is_file(fd, "dossier/");
     printf("file returned %d\n", ret2);
 
-    int ret3 = is_symlink(fd, "lib_tar.h");
+    int ret3 = is_symlink(fd, "copyfolder");
     printf("is_symlink returned %d\n", ret3);
 
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     }
 
     size_t no_entries = 0;
-    int ret4 = list(fd, "dossier/", entries, &no_entries);
+    int ret4 = list(fd, "copyfolder", entries, &no_entries);
     printf("list returned %d\n", ret4);
 
 
