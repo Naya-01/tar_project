@@ -239,14 +239,17 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
         if (strncmp(header->name, path, path_len) == 0 && header->typeflag == SYMTYPE) {
             entries_count = list(tar_fd, header->linkname, entries, no_entries);
             break;
-            
         }
 
         if (strncmp(header->name, path, path_len) == 0 && strlen(header->name) != path_len) {
-            if (entries_count < *no_entries){
-                strcpy(entries[entries_count], header->name);
-                printf("ent : %s \n", entries[entries_count]);
-                entries_count++;
+            char *subpath = strchr(header->name + path_len, '/');
+            //printf("okokok :::: %s \n", subpath);
+            if (!subpath || (strlen(subpath) == 1)) {
+                if (entries_count < *no_entries){
+                    strcpy(entries[entries_count], header->name);
+                    //printf("ent : %s \n", entries[entries_count]);
+                    entries_count++;
+                }
             }
         }
 
