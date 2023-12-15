@@ -243,9 +243,11 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
         }
 
         if (strncmp(header->name, path, path_len) == 0 && strlen(header->name) != path_len) {
-            strncpy(entries[entries_count], header->name, MAX_BLOCK);
-            printf("ent : %s \n", entries[entries_count]);
-            entries_count++;
+            if (entries_count < *no_entries){
+                strcpy(entries[entries_count], header->name);
+                printf("ent : %s \n", entries[entries_count]);
+                entries_count++;
+            }
         }
 
         int file_size = TAR_INT(header->size);

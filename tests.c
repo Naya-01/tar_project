@@ -39,17 +39,18 @@ int main(int argc, char **argv) {
     int ret = check_archive(fd);
     printf("check_archive returned %d\n", ret);
 
+    char *test = "copyfolder";
 
-    int ret0 = exists(fd, "dossier/ok.txt");
+    int ret0 = exists(fd, test);
     printf("exists returned %d\n", ret0);
 
-    int ret1 = is_dir(fd, "dossier/");
+    int ret1 = is_dir(fd, test);
     printf("DIR returned %d\n", ret1);
 
-    int ret2 = is_file(fd, "dossier/");
+    int ret2 = is_file(fd, test);
     printf("file returned %d\n", ret2);
 
-    int ret3 = is_symlink(fd, "copyfolder");
+    int ret3 = is_symlink(fd, test);
     printf("is_symlink returned %d\n", ret3);
 
 
@@ -58,8 +59,8 @@ int main(int argc, char **argv) {
         entries[i] = malloc(64);
     }
 
-    size_t no_entries = 0;
-    int ret4 = list(fd, "copyfolder", entries, &no_entries);
+    size_t no_entries = 10;
+    int ret4 = list(fd, test, entries, &no_entries);
     printf("list returned %d\n", ret4);
 
 
