@@ -277,10 +277,10 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
  */
 ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) {
         
-    // int err;
+    // check if file exist
     if(exists(tar_fd,path)!= 1) return -1;  
 
-    // Lecture 
+    // start to read the content of the archive 
     lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
@@ -293,12 +293,23 @@ ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *
         }
         
         printf("header name :::: %s \n", header->name);
-        printf("flag type :::: %c \n\n", header->typeflag);
-        
-        // If SYMLINK then check if the other nickname is a file
-        if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE) {
-            printf("linkname : %s\n", header->linkname);
+        // printf("flag type :::: %c \n", header->typeflag);
+        // printf("is file? %d\n", is_file(tar_fd,header->name));
+        // printf("linkname? %s\n", header->linkname);
+        // printf("linkname is file? %d\n", is_file(tar_fd,header->linkname));
+
+        // If we point on the wanted file and this one is a symLink
+        if(strcmp(header->name, path) == 0 && is_file(tar_fd,path)){
+            printf("you want to read a file (NAME: %s)\n", header->name);
+            break;
+        }else if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE && is_file(tar_fd,header->linkname)){
+            printf("you want to read a symlink file (NAME: %s) [SYM: %s]\n", header->name, header->linkname);
+            break;
+        }else if(strcmp(header->name, path) == 0){
+            printf("not a file [finish] OR\n");
+            return -1;
         }
+        
 
         int file_size = TAR_INT(header->size);
         int file_blocks = (file_size + MAX_BLOCK - 1) / MAX_BLOCK;
