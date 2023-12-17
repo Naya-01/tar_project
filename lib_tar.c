@@ -240,7 +240,11 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
         }
 
         if (strncmp(header->name, path, path_len) == 0 && header->typeflag == SYMTYPE) {
-            entries_count = list(tar_fd, header->linkname, entries, no_entries);
+            char *new_link = header->linkname;
+            if(header->linkname[strlen(header->linkname)-1] != '/'){
+                new_link[strlen(header->linkname)] = '/';
+            }
+            entries_count = list(tar_fd, new_link, entries, no_entries);
             break;
         }
 
@@ -248,7 +252,7 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
             char *subpath = strchr(header->name + path_len, '/');
             if (!subpath || (strlen(subpath) == 1)) {
                 strcpy(entries[entries_count], header->name);
-                //printf("ent : %s \n", entries[entries_count]);
+                printf("find : %s \n", entries[entries_count]);
                 entries_count++;
             }
         }
