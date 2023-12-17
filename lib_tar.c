@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
 #define MAX_BLOCK 512
 
 /**
@@ -290,8 +291,6 @@ ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *
     lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
-    
-    printf("sizeof buffer : %ld\n", sizeof(dest));
 
     while (read(tar_fd, header, MAX_BLOCK) != -1) {
         int file_size = TAR_INT(header->size);
@@ -300,26 +299,48 @@ ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *
             break;
         }
         
-        printf("header name :::: %s \n", header->name);
-        printf("file size  :::: %d \n", file_size);
-
-        // If we point on the wanted file and this one is a symLink
         if(strcmp(header->name, path) == 0 && is_file(tar_fd,path)){
-            printf("you want to read a file (NAME: %s)\n", header->name);
-
-            if(offset>file_size){
-                printf("offset outside FILE LENGTH\n");
+            if(offset>=file_size){
                 return -2;
             }
-            break;
-        }else if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE && is_file(tar_fd,header->linkname)){
+            // Get current position
+            off_t currentPosition = lseek(tar_fd, 0, SEEK_CUR);
+            // Move with the offset
+            lseek(tar_fd, currentPosition + offset, SEEK_SET);
+
+            if(*len>file_size){
+                // the buffer is big enough to store all the data
+                *len = read(tar_fd, dest, file_size);
+                return 0;
+            }else{
+                // if the offset cause that we acces outside the boundaries of the file
+                if(*len + offset > file_size) return -2;
+                // the buffer isn't enough big to store all the data 
+                int remaining_bytes = file_size - *len;
+                *len = read(tar_fd, dest, *len);
+                remaining_bytes -=  offset;
+
+                return remaining_bytes;
+            }
+            return 0;
+        }else if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE){ // SYMLINK CASE
             printf("you want to read a symlink file (NAME: %s) [SYM: %s]\n", header->name, header->linkname);
 
-            if(offset>file_size){
-                printf("offset outside FILE LENGTH\n");
-                return -2;
-            }
-            break;
+            const char *lastSlash = strrchr(path, '/');
+            size_t length_s = lastSlash - path;
+            size_t length_link = strlen(header->linkname);
+
+            char comp_path[length_s + 2 + length_link + 1];
+            // Copy the substring
+            strncpy(comp_path, path, length_s + 1);
+            comp_path[length_s + 1] = '\0'; 
+            strcat(comp_path, header->linkname);
+
+            comp_path[length_s + 2 + length_link] = '\0';
+            // Print or use the extracted substring
+            printf("length substring (%s): %ld\n", header->name, length_s);
+            printf("Substring: %s\n", comp_path);
+            return read_file(tar_fd,comp_path,offset,dest,len);
         }else if(strcmp(header->name, path) == 0){
             printf("not a file [finish] OR\n");
             return -1;
