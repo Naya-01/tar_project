@@ -1,4 +1,4 @@
-CFLAGS=-g -Wall -Werror
+CFLAGS=-g -Wall -Werror -Wno-unused-variable
 
 all: tests lib_tar.o
 
