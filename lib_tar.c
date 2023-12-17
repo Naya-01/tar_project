@@ -231,10 +231,13 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
 
     while (read(tar_fd, header, MAX_BLOCK) != -1) {
 
-        if (header->name[0] == '\0') {
+        if (entries_count > *no_entries){ 
             break;
         }
 
+        if (header->name[0] == '\0') {
+            break;
+        }
 
         if (strncmp(header->name, path, path_len) == 0 && header->typeflag == SYMTYPE) {
             entries_count = list(tar_fd, header->linkname, entries, no_entries);
@@ -242,9 +245,12 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
         }
 
         if (strncmp(header->name, path, path_len) == 0 && strlen(header->name) != path_len) {
-            strncpy(entries[entries_count], header->name, MAX_BLOCK);
-            printf("ent : %s \n", entries[entries_count]);
-            entries_count++;
+            char *subpath = strchr(header->name + path_len, '/');
+            if (!subpath || (strlen(subpath) == 1)) {
+                strcpy(entries[entries_count], header->name);
+                //printf("ent : %s \n", entries[entries_count]);
+                entries_count++;
+            }
         }
 
         int file_size = TAR_INT(header->size);

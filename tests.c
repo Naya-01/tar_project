@@ -39,31 +39,29 @@ int main(int argc, char **argv) {
     // int ret = check_archive(fd);
     // printf("check_archive returned %d\n", ret);
 
+    char *test = "copyfolder";
 
-    // int ret0 = exists(fd, "dossier/ok.txt");
-    // printf("exists returned %d\n", ret0);
+    int ret0 = exists(fd, test);
+    printf("exists returned %d\n", ret0);
 
-    // int ret1 = is_dir(fd, "dossier/");
-    // printf("DIR returned %d\n", ret1);
+    int ret1 = is_dir(fd, test);
+    printf("DIR returned %d\n", ret1);
 
-    // int ret2 = is_file(fd, "dossier/");
-    // printf("file returned %d\n", ret2);
+    int ret2 = is_file(fd, test);
+    printf("file returned %d\n", ret2);
 
-    // int ret3 = is_symlink(fd, "copyfolder");
-    // printf("is_symlink returned %d\n", ret3);
+    int ret3 = is_symlink(fd, test);
+    printf("is_symlink returned %d\n", ret3);
 
 
-    // char *entries[10];
-    // for (int i = 0; i < 10; i++) {
-    //     entries[i] = malloc(64);
-    // }
+    char *entries[10];
+    for (int i = 0; i < 10; i++) {
+        entries[i] = malloc(64);
+    }
 
-    // size_t no_entries = 0;
-    // int ret4 = list(fd, "copyfolder", entries, &no_entries);
-    // printf("list returned %d\n", ret4);
-
-    int ret5 = read_file(fd, "dossier/symb.txt", 0, 0, 0);
-    printf("readed_file returned %d\n", ret5);
+    size_t no_entries = 10;
+    int ret4 = list(fd, test, entries, &no_entries);
+    printf("list returned %d\n", ret4);
 
 
     return 0;
