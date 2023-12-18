@@ -288,71 +288,41 @@ int list(int tar_fd, char *path, char **entries, size_t *no_entries) {
  */
 ssize_t read_file(int tar_fd, char *path, size_t offset, uint8_t *dest, size_t *len) {
         
-    // check if file exist
     if(exists(tar_fd,path)!= 1) return -1;  
 
-    // start to read the content of the archive 
     lseek(tar_fd, 0, SEEK_SET);
     char buffer[MAX_BLOCK];
     tar_header_t *header = (tar_header_t*) buffer;
 
     while (read(tar_fd, header, MAX_BLOCK) != -1) {
         int file_size = TAR_INT(header->size);
-        // Condition d'arrêt
         if (header->name[0] == '\0') {
             break;
         }
-        
-        if(strcmp(header->name, path) == 0 && is_file(tar_fd,path)){
+        if(strcmp(header->name, path) == 0 && (header->typeflag == REGTYPE || header->typeflag == AREGTYPE)){
             if(offset>=file_size){
                 return -2;
             }
-            // Get current position
             off_t currentPosition = lseek(tar_fd, 0, SEEK_CUR);
-            // Move with the offset
             lseek(tar_fd, currentPosition + offset, SEEK_SET);
-
             if(*len>file_size){
-                // the buffer is big enough to store all the data
-                *len = read(tar_fd, dest, file_size);
+                *len = read(tar_fd, dest, file_size - offset);
                 return 0;
             }else{
-                // if the offset cause that we acces outside the boundaries of the file
                 if(*len + offset > file_size) return -2;
-                // the buffer isn't enough big to store all the data 
                 int remaining_bytes = file_size - *len;
                 *len = read(tar_fd, dest, *len);
                 remaining_bytes -=  offset;
-
                 return remaining_bytes;
             }
-            return 0;
-        }else if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE){ // SYMLINK CASE
-            printf("you want to read a symlink file (NAME: %s) [SYM: %s]\n", header->name, header->linkname);
-
-            const char *lastSlash = strrchr(path, '/');
-            size_t length_s = lastSlash - path;
-            size_t length_link = strlen(header->linkname);
-
-            char comp_path[length_s + 2 + length_link + 1];
-            // Copy the substring
-            strncpy(comp_path, path, length_s + 1);
-            comp_path[length_s + 1] = '\0'; 
-            strcat(comp_path, header->linkname);
-
-            comp_path[length_s + 2 + length_link] = '\0';
-            // Print or use the extracted substring
-            printf("length substring (%s): %ld\n", header->name, length_s);
-            printf("Substring: %s\n", comp_path);
-            return read_file(tar_fd,comp_path,offset,dest,len);
+        }else if (strcmp(header->name, path) == 0 && header->typeflag == SYMTYPE){
+            return read_file(tar_fd,header->linkname,offset,dest,len);
         }else if(strcmp(header->name, path) == 0){
-            printf("not a file [finish] OR\n");
             return -1;
         }
 
         int file_blocks = (file_size + MAX_BLOCK - 1) / MAX_BLOCK;
         lseek(tar_fd, file_blocks * MAX_BLOCK, SEEK_CUR);
     }
-
-    return 1;
+    return 0;
 }
