@@ -36,10 +36,10 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    int ret = check_archive(fd);
-    printf("check_archive returned %d\n", ret);
+    // int ret = check_archive(fd);
+    // printf("check_archive returned %d\n", ret);
 
-    char *test = "copyfolder";
+    char *test = "dossier/ryan.txt";
 
     int ret0 = exists(fd, test);
     printf("exists returned %d\n", ret0);
@@ -63,6 +63,14 @@ int main(int argc, char **argv) {
     int ret4 = list(fd, test, entries, &no_entries);
     printf("list returned %d\n", ret4);
 
-
+    uint8_t buffer[256];
+    size_t len = sizeof(buffer);
+    int ret5 = read_file(fd, test,3, buffer, &len);
+    printf("readfile returned %d\n", ret5);
+    if(ret5>=0){
+        printf("buffer content : %s\n-----\n", buffer);
+        printf("len value : %ld\n-----\n", len);
+    }
+    
     return 0;
 }
